@@ -46,7 +46,10 @@ class ASDLGrammar(object):
             return self._productions[datum]
 
     def get_prod_by_ctr_name(self, name):
+        if name == 'AsyncFunctionDef':
+            name = 'FunctionDef'
         return self._constructor_production_map[name]
+
 
     @property
     def types(self):
