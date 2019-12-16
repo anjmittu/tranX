@@ -2,7 +2,7 @@
 set -e
 
 seed=${1:-0}
-vocab="data/conala/vocab.var_str_sep.src_freq3.code_freq3.bin"
+vocab="data/conala/vocab.var_str_sep.new_dev.src_freq3.code_freq3.bin"
 train_file="data/conala/train.var_str_sep.bin"
 dev_file="data/conala/dev.var_str_sep.bin"
 dropout=0.3
@@ -24,7 +24,6 @@ mkdir -p logs/conala
 echo commit hash: `git rev-parse HEAD` > logs/conala/${model_name}.log
 
 python -u exp.py \
-    --cuda \
     --seed ${seed} \
     --mode train \
     --batch_size 10 \

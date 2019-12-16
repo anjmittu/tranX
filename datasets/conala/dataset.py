@@ -2,6 +2,10 @@ import json
 import sys
 import numpy as np
 import pickle
+import os
+
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, PROJECT_ROOT)
 
 from components.action_info import get_action_infos
 from datasets.conala.util import *
@@ -14,6 +18,7 @@ from components.vocab import Vocab, VocabEntry
 from components.dataset import Example
 from components.dataset import Dataset
 from components.action_info import ActionInfo
+from datasets.conala.evaluator import ConalaEvaluator
 
 
 def preprocess_conala_dataset(train_file, test_file, grammar_file, src_freq=3, code_freq=3):
@@ -74,6 +79,7 @@ def preprocess_conala_dataset(train_file, test_file, grammar_file, src_freq=3, c
     pickle.dump(train_examples, open('data/conala/train.var_str_sep.bin', 'wb'))
     pickle.dump(full_train_examples, open('data/conala/train.var_str_sep.full.bin', 'wb'))
     pickle.dump(dev_examples, open('data/conala/dev.var_str_sep.bin', 'wb'))
+    # pickle.dump(train_examples, open('data/mined-spanish/dev.var_str_sep.bin', 'wb'))
     pickle.dump(test_examples, open('data/conala/test.var_str_sep.bin', 'wb'))
     pickle.dump(vocab, open('data/conala/vocab.var_str_sep.new_dev.src_freq%d.code_freq%d.bin' % (src_freq, code_freq), 'wb'))
 
@@ -112,14 +118,14 @@ def preprocess_dataset(file_path, transition_system, name='train'):
             # print('\t[%d] %s, frontier field: %s, parent: %d' % (t, action, f_t, p_t))
             hyp = hyp.clone_and_apply_action(action)
 
-        assert hyp.frontier_node is None and hyp.frontier_field is None
+        # assert hyp.frontier_node is None and hyp.frontier_field is None
         hyp.code = code_from_hyp = astor.to_source(asdl_ast_to_python_ast(hyp.tree, transition_system.grammar)).strip()
-        assert code_from_hyp == canonical_code
+        # assert code_from_hyp == canonical_code
 
         decanonicalized_code_from_hyp = decanonicalize_code(code_from_hyp, example_dict['slot_map'])
-        assert compare_ast(ast.parse(example_json['snippet']), ast.parse(decanonicalized_code_from_hyp))
-        assert transition_system.compare_ast(transition_system.surface_code_to_ast(decanonicalized_code_from_hyp),
-                                             transition_system.surface_code_to_ast(example_json['snippet']))
+        # assert compare_ast(ast.parse(example_json['snippet']), ast.parse(decanonicalized_code_from_hyp))
+        # assert transition_system.compare_ast(transition_system.surface_code_to_ast(decanonicalized_code_from_hyp),
+        #                                      transition_system.surface_code_to_ast(example_json['snippet']))
 
         tgt_action_infos = get_action_infos(example_dict['intent_tokens'], tgt_actions)
 
@@ -130,7 +136,7 @@ def preprocess_dataset(file_path, transition_system, name='train'):
                           tgt_ast=tgt_ast,
                           meta=dict(example_dict=example_json,
                                     slot_map=example_dict['slot_map']))
-        assert evaluator.is_hyp_correct(example, hyp)
+        # assert evaluator.is_hyp_correct(example, hyp)
 
         examples.append(example)
 
@@ -165,7 +171,7 @@ def preprocess_example(example_json):
     reconstructed_snippet = astor.to_source(ast.parse(snippet)).strip()
     reconstructed_decanonical_snippet = astor.to_source(ast.parse(decanonical_snippet)).strip()
 
-    assert compare_ast(ast.parse(reconstructed_snippet), ast.parse(reconstructed_decanonical_snippet))
+    # assert compare_ast(ast.parse(reconstructed_snippet), ast.parse(reconstructed_decanonical_snippet))
 
     return {'canonical_intent': canonical_intent,
             'intent_tokens': intent_tokens,
@@ -190,8 +196,8 @@ def generate_vocab_for_paraphrase_model(vocab_path, save_path):
 
 if __name__ == '__main__':
     # the json files can be download from http://conala-corpus.github.io
-    preprocess_conala_dataset(train_file='data/conala/conala-train.json',
-                              test_file='data/conala/conala-test.json',
+    preprocess_conala_dataset(train_file='data/conala/spanish_translate_data_train.json',
+                              test_file='data/conala/spanish_translate_data_test.json',
                               grammar_file='asdl/lang/py3/py3_asdl.simplified.txt', src_freq=3, code_freq=3)
 
     # generate_vocab_for_paraphrase_model('data/conala/vocab.src_freq3.code_freq3.bin', 'data/conala/vocab.para.src_freq3.code_freq3.bin')

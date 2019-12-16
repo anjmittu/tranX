@@ -33,6 +33,8 @@ class ConalaEvaluator(Evaluator):
                              smoothing_function=SmoothingFunction().method3)
 
     def evaluate_dataset(self, dataset, decode_results, fast_mode=False):
+        f_decode = None
+
         examples = dataset.examples if isinstance(dataset, Dataset) else dataset
         assert len(examples) == len(decode_results)
 
@@ -67,6 +69,8 @@ class ConalaEvaluator(Evaluator):
 
             return bleu
         else:
+            f_decode = open('mined-spanish_decode_results.txt', 'w')
+
             tokenized_ref_snippets = []
             hyp_code_tokens = []
             best_hyp_code_tokens = []
@@ -74,9 +78,41 @@ class ConalaEvaluator(Evaluator):
             sent_bleu_scores = []
             oracle_bleu_scores = []
             oracle_exact_match = []
+
+            count = 0
             for example, hyp_list in zip(examples, decode_results):
                 tokenized_ref_snippets.append(example.reference_code_tokens)
                 example_hyp_bleu_scores = []
+
+                f_decode.write('-' * 60 + '\n')
+                f_decode.write('number and example_id: \n')
+                f_decode.write(example.idx+ '\n')
+                f_decode.write('\n')
+                f_decode.write('original snippet: \n')
+                if example.meta['example_dict']['snippet'] is None:
+                    f_decode.write('\n')
+                else:
+                    f_decode.write(example.meta['example_dict']['snippet'])
+                f_decode.write('\n')
+                f_decode.write('predicted ast: \n')
+                if hyp_list:
+                    f_decode.write(hyp_list[0].tree.to_string())
+                    f_decode.write('\n')
+                else:
+                    f_decode.write('\n')
+                f_decode.write('predicted code: \n')
+                if hyp_list:
+                    f_decode.write(hyp_list[0].decanonical_code)
+                else:
+                    f_decode.write('\n')
+                f_decode.write('\n')
+            #f_decode.write('predicted code: \n')
+            #f_decode.write(hyp_code_tokens+ '\n')
+            #listToStr = ' '.join([str(elem) for elem in hyp_code_tokens])
+            #f_decode.write(listToStr)
+            #f_decode.write('\n')
+                f_decode.write('-' * 60 + '\n')
+                count+=1
                 if hyp_list:
                     for i, hyp in enumerate(hyp_list):
                         hyp.bleu_score = sentence_bleu([example.reference_code_tokens],
@@ -104,6 +140,7 @@ class ConalaEvaluator(Evaluator):
                 oracle_bleu_scores.append(oracle_sent_bleu)
                 best_hyp_code_tokens.append(_best_hyp_code_tokens)
 
+
             bleu_tup = compute_bleu([[x] for x in tokenized_ref_snippets], hyp_code_tokens, smooth=False)
             corpus_bleu = bleu_tup[0]
 
@@ -116,6 +153,7 @@ class ConalaEvaluator(Evaluator):
                 len(examples))
             oracle_exact_match = np.average(oracle_exact_match)
 
+            f_decode.close()
             return {'corpus_bleu': corpus_bleu,
                     'oracle_corpus_bleu': oracle_corpus_bleu,
                     'avg_sent_bleu': avg_sent_bleu,
