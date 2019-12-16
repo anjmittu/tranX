@@ -109,3 +109,5 @@ data/
 
 # saved model files
 saved_models/
+
+.DS_Store
