@@ -204,8 +204,8 @@ def generate_vocab_for_paraphrase_model(vocab_path, save_path):
 
 if __name__ == '__main__':
     # the json files can be download from http://conala-corpus.github.io
-    preprocess_conala_dataset(train_file='data/mined-spanish/python_en_train.json',
-                              test_file='data/mined-spanish/python_en_test.json',
+    preprocess_conala_dataset(train_file='data/mined-spanish/train.json',
+                              test_file='data/mined-spanish/test.json',
                               grammar_file='asdl/lang/py3/py3_asdl.simplified.txt', src_freq=3, code_freq=3)
 
     # generate_vocab_for_paraphrase_model('data/conala/vocab.src_freq3.code_freq3.bin', 'data/conala/vocab.para.src_freq3.code_freq3.bin')
